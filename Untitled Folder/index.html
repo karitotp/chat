@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>WebSockets Chat Example</title>
+        <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+
+        <script>
+
+            //Inicializamos nuestras variables
+
+var socket = null;
+var user = null;
+
+
+
+$(document).ready(function(){
+     $("#chat").hide();//Ocultamos por defecto el layer del chat
+     //controlamos el evento del boton de iniciar chat
+
+
+$("#btnJoin").click(function(){
+         socket = io.connect('http://localhost:8080');//iniciamos conexion con el server
+         user = $("#user").val();//guardamos el usuario insertado en memoria
+         socket.emit('login',user);//llamamos el evento login del server
+
+
+         //Controlamos el evento message que enviará el servidor
+
+
+        socket.on('message', function (msg) {
+             console.log('Received Message: %s', msg);
+             $(".messages").append(msg.text);
+         });
+
+         $("#chat").show();
+         $(".user").hide();
+
+
+});
+
+
+
+
+   $('form').submit(function(){
+    socket.emit('message',{"user": user,"message": $("#textSend").val()});
+    $('#textSend').val('');
+    return false;
+  });
+
+ $('#textSend').keyup(function (evt) {
+      if (evt.keyCode === 13) {
+        //socket.emit('chat message', $('#m').val());
+        $('textSend').val('');
+      }
+    });
+
+
+
+});
+        </script>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px ; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 100% }
+      #messages li { padding: 1px 20px; }
+
+        </style>
+    </head>
+    <body>
+        <h2>Welcome to the WebSockets Chat</h2>
+        <section class="user">
+            <label>User Name </label> <input type="text" id="user"/>
+            <input type="button" value="Join" id="btnJoin"/>
+        </section>
+
+        <section id="chat">
+            <section class="messages"></section>
+            <section>
+                <form action="">
+                <input type="text" id="textSend"/>
+                </form>
+            </section>
+        </section>
+    </body>
+</html>
