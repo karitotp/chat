@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.css' rel='stylesheet' />
+
+    <style>
+      
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      .ui-button {
+        background: #3887BE;
+        color: #FFF;
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 160px;
+        margin: -20px 0 0 -80px;
+        z-index: 100;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        border-radius: 3px;
+      }
+      .ui-button:hover {
+        background: #3074a4;
+        color: #fff;
+      }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+
+      #messages { 
+        list-style-type: none; 
+        margin: 0; 
+        padding: 0; 
+        position: absolute;
+        height: 200px;
+        width: auto;
+        z-index: 999;
+        background:#000;
+        color: #fff;
+        
+      }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+      <div id='map'></div>
+    <a href='#' id='geolocate' class='ui-button'>Find me</a>
+
+
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script>
+
+    var socket = io();
+
+      $('form').submit(function() {
+          socket.emit('chat message', $('#m').val());
+          $('#m').val('');
+          
+          return false;
+      });
+
+
+      socket.on('chat message', function(msg) {
+          $('#messages').append($('<li>').text(msg));
+      });
+
+
+
+          L.mapbox.accessToken = 'pk.eyJ1Ijoia2FyaXRvdHAiLCJhIjoib0ppeVhnWSJ9.JOLM9BQLqtI_bjvNzjNPew';
+      var geolocate = document.getElementById('geolocate');
+      var map = L.mapbox.map('map', 'mapbox.streets');
+
+      var myLayer = L.mapbox.featureLayer().addTo(map);
+      if (!navigator.geolocation) {
+          geolocate.innerHTML = 'Geolocation is not available';
+      } else {
+          geolocate.onclick = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              map.locate();
+          };
+      }
+
+      map.on('locationfound', function(e) {
+
+          map.fitBounds(e.bounds);
+          var posistion={
+              type: 'Feature',
+              geometry: {
+                  type: 'Point',
+                  coordinates: [e.latlng.lng, e.latlng.lat]
+              },
+              properties: {
+                  'title': 'Here I am!',
+                  'marker-color': '#ff8888',
+                  'marker-symbol': 'star'
+              }
+          };
+
+          socket.emit('location',posistion);
+
+          myLayer.setGeoJSON(posistion);
+          geolocate.parentNode.removeChild(geolocate);
+
+
+      });
+      map.on('locationerror', function() {
+          geolocate.innerHTML = 'Position could not be found';
+      });
+
+      //==========================================================================
+    socket.on('location', function(position) {
+      console.log(position);
+          myLayer.setGeoJSON(position);
+
+
+      });
+
+    </script>
+  </body>
+</html>

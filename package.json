@@ -1,24 +1,9 @@
 {
-  "name": "chat",
-  "version": "0.0.0",
-  "description": "",
-  "main": "server.js",
+  "name": "socket-chat-example",
+  "version": "0.0.1",
+  "description": "my first socket.io app",
   "dependencies": {
-    "express": "~4.13.4",
-    "socket.io": "~1.4.5"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/karitotp/chat.git"
-  },
-  "author": "",
-  "license": "BSD-2-Clause",
-  "bugs": {
-    "url": "https://github.com/karitotp/chat/issues"
+    "express": "4.10.2",
+    "socket.io": "1.2.0"
   }
 }
