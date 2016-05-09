@@ -48,11 +48,11 @@
         margin: 0; 
         padding: 0; 
         position: absolute;
-        height: 200px;
-        width: auto;
+        height: auto;
+        width: 200px;
         z-index: 999;
-        background:#000;
-        color: #fff;
+       background:#fff;
+        right: 0px;
         
       }
       #messages li { padding: 5px 10px; }
@@ -62,35 +62,32 @@
   <body>
       <div id='map'></div>
     <a href='#' id='geolocate' class='ui-button'>Find me</a>
-
-
     <ul id="messages"></ul>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
 
     <script>
-
     var socket = io();
-
       $('form').submit(function() {
           socket.emit('chat message', $('#m').val());
           $('#m').val('');
-          
           return false;
       });
-
-
-      socket.on('chat message', function(msg) {
-          $('#messages').append($('<li>').text(msg));
+      socket.on('chat message', function(obj) {
+           myLayer.eachLayer(function(m) {
+            console.log(m);
+            if(m.feature.properties.id==obj.id){
+              $('#messages').append($('<li>').html('<strong>'+m.feature.properties.user+' :</strong>' + obj.msg));
+                  m.openPopup();
+                $(".marker-description").text(obj.msg);
+            }
+          });
       });
 
-
-
-          L.mapbox.accessToken = 'pk.eyJ1Ijoia2FyaXRvdHAiLCJhIjoib0ppeVhnWSJ9.JOLM9BQLqtI_bjvNzjNPew';
+      L.mapbox.accessToken = 'pk.eyJ1Ijoia2FyaXRvdHAiLCJhIjoib0ppeVhnWSJ9.JOLM9BQLqtI_bjvNzjNPew';
       var geolocate = document.getElementById('geolocate');
       var map = L.mapbox.map('map', 'mapbox.streets');
-
       var myLayer = L.mapbox.featureLayer().addTo(map);
       if (!navigator.geolocation) {
           geolocate.innerHTML = 'Geolocation is not available';
@@ -103,40 +100,44 @@
       }
 
       map.on('locationfound', function(e) {
-
+          user=makeid();
           map.fitBounds(e.bounds);
-          var posistion={
+          var position={
               type: 'Feature',
               geometry: {
                   type: 'Point',
                   coordinates: [e.latlng.lng, e.latlng.lat]
               },
               properties: {
-                  'title': 'Here I am!',
+                  'title': user,
+                  'description':'test',
                   'marker-color': '#ff8888',
-                  'marker-symbol': 'star'
+                  'marker-symbol': 'star',
+                  'user': user
               }
           };
-
-          socket.emit('location',posistion);
-
-          myLayer.setGeoJSON(posistion);
+          socket.emit('location',position);
           geolocate.parentNode.removeChild(geolocate);
-
-
-      });
+        });
       map.on('locationerror', function() {
           geolocate.innerHTML = 'Position could not be found';
       });
 
-      //==========================================================================
-    socket.on('location', function(position) {
-      console.log(position);
-          myLayer.setGeoJSON(position);
-
-
+    socket.on('location', function(positions) {
+          console.log(positions);
+           myLayer.setGeoJSON(positions);
       });
 
+      function makeid()
+      {
+          var text = "";
+          var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+          for( var i=0; i < 5; i++ )
+              text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+          return text;
+      }
     </script>
   </body>
 </html>
